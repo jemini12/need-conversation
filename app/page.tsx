@@ -83,31 +83,58 @@ export default function Home() {
     let topicIndex = 0
     let principleIndex = 0
 
-    const validPresetMembers = presetTrioMembers.filter((m) =>
-      shuffledPeople.includes(m)
-    )
+    const validPresetMembers = [...new Set(presetTrioMembers)]
+      .filter((m) => shuffledPeople.includes(m))
+      .slice(0, 3)
     const remainingPeople = shuffledPeople.filter(
       (p) => !validPresetMembers.includes(p)
     )
 
     const needsTrioTeam = shuffledPeople.length % 2 === 1
+    const forcePresetTrioInEvenCase =
+      !needsTrioTeam && validPresetMembers.length > 0
 
-    if (needsTrioTeam && validPresetMembers.length > 0) {
+    if (forcePresetTrioInEvenCase && shuffledPeople.length < 6) {
+      alert(
+        "짝수 인원에서 3인조를 만들려면 최소 6명의 참가자가 필요합니다."
+      )
+      return
+    }
+
+    if (needsTrioTeam || forcePresetTrioInEvenCase) {
       const trioMembers = [...validPresetMembers]
+
       while (trioMembers.length < 3 && remainingPeople.length > 0) {
-        trioMembers.push(remainingPeople.shift()!)
+        const nextMember = remainingPeople.shift()
+        if (nextMember) {
+          trioMembers.push(nextMember)
+        }
       }
+
+      if (trioMembers.length !== 3) {
+        alert("3인조 팀을 구성하는 중 오류가 발생했습니다. 다시 시도해주세요.")
+        return
+      }
+
       newTeams.push({
         id: teamId++,
         members: trioMembers,
         topic: shuffledTopics[topicIndex++ % shuffledTopics.length],
         principle: shuffledPrinciples[principleIndex++ % shuffledPrinciples.length],
       })
-    } else if (needsTrioTeam) {
-      const trioMembers = remainingPeople.splice(0, 3)
+    }
+
+    if (forcePresetTrioInEvenCase) {
+      const secondTrioMembers = remainingPeople.splice(0, 3)
+
+      if (secondTrioMembers.length !== 3) {
+        alert("짝수 인원 3인조 구성을 완료하지 못했습니다. 다시 시도해주세요.")
+        return
+      }
+
       newTeams.push({
         id: teamId++,
-        members: trioMembers,
+        members: secondTrioMembers,
         topic: shuffledTopics[topicIndex++ % shuffledTopics.length],
         principle: shuffledPrinciples[principleIndex++ % shuffledPrinciples.length],
       })
@@ -121,6 +148,11 @@ export default function Home() {
         topic: shuffledTopics[topicIndex++ % shuffledTopics.length],
         principle: shuffledPrinciples[principleIndex++ % shuffledPrinciples.length],
       })
+    }
+
+    if (remainingPeople.length > 0) {
+      alert("팀 구성 중 남은 인원이 발생했습니다. 다시 시도해주세요.")
+      return
     }
 
     setTeams(shuffleArray(newTeams))

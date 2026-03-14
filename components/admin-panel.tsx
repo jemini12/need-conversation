@@ -253,6 +253,7 @@ export default function AdminPanel({
                   >
                     {person}
                     <button
+                      type="button"
                       onClick={() => removePerson(person)}
                       className="ml-1 hover:text-destructive transition-colors"
                     >
@@ -303,6 +304,7 @@ export default function AdminPanel({
                   >
                     {topic}
                     <button
+                      type="button"
                       onClick={() => removeTopic(topic)}
                       className="ml-1 hover:text-destructive transition-colors"
                     >
@@ -354,6 +356,7 @@ export default function AdminPanel({
                 >
                   {principle}
                   <button
+                    type="button"
                     onClick={() => removePrinciple(principle)}
                     className="ml-1 hover:text-destructive transition-colors"
                   >
@@ -392,7 +395,7 @@ export default function AdminPanel({
             <CardContent className="pt-0 space-y-4">
               <p className="text-sm text-muted-foreground">
                 홀수 인원 시 3인조 팀에 포함될 멤버를 미리 지정할 수 있습니다.
-                (최대 3명)
+                짝수 인원에서 선택하면 3인조 2팀으로 구성됩니다. (최대 3명)
               </p>
               <div className="flex flex-wrap gap-2 min-h-[60px] p-3 rounded-lg bg-secondary/50 border border-border">
                 {people.length === 0 ? (
