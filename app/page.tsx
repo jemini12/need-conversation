@@ -16,7 +16,7 @@ export default function Home() {
   const [people, setPeople] = useState<string[]>([])
   const [topics, setTopics] = useState<string[]>([])
   const [principles, setPrinciples] = useState<string[]>([])
-  const [presetTrioMembers, setPresetTrioMembers] = useState<string[]>([])
+  const [teamSize, setTeamSize] = useState<2 | 3 | 4>(2)
   const [teams, setTeams] = useState<Team[]>([])
   const [showResult, setShowResult] = useState(false)
 
@@ -62,8 +62,8 @@ export default function Home() {
   }
 
   const generateMatching = () => {
-    if (people.length < 2) {
-      alert("최소 2명 이상의 참가자가 필요합니다.")
+    if (people.length < teamSize) {
+      alert(`최소 ${teamSize}명 이상의 참가자가 필요합니다.`)
       return
     }
     if (topics.length === 0) {
@@ -78,73 +78,29 @@ export default function Home() {
     const shuffledPeople = shuffleArray(people)
     const shuffledTopics = shuffleArray(topics)
     const shuffledPrinciples = shuffleArray(principles)
+    const remainingPeople = [...shuffledPeople]
     const newTeams: Team[] = []
     let teamId = 1
     let topicIndex = 0
     let principleIndex = 0
 
-    const validPresetMembers = [...new Set(presetTrioMembers)]
-      .filter((m) => shuffledPeople.includes(m))
-      .slice(0, 3)
-    const remainingPeople = shuffledPeople.filter(
-      (p) => !validPresetMembers.includes(p)
-    )
+    if ((teamSize === 2 || teamSize === 4) && people.length % 2 === 1) {
+      alert(`${teamSize}인 팀은 짝수 인원에서만 만들 수 있습니다.`)
+      return
+    }
 
-    const needsTrioTeam = shuffledPeople.length % 2 === 1
-    const forcePresetTrioInEvenCase =
-      !needsTrioTeam && validPresetMembers.length > 0
-
-    if (forcePresetTrioInEvenCase && shuffledPeople.length < 6) {
+    if (people.length % teamSize !== 0) {
       alert(
-        "짝수 인원에서 3인조를 만들려면 최소 6명의 참가자가 필요합니다."
+        `현재 인원(${people.length}명)으로는 ${teamSize}인 팀을 동일하게 구성할 수 없습니다.`
       )
       return
     }
 
-    if (needsTrioTeam || forcePresetTrioInEvenCase) {
-      const trioMembers = [...validPresetMembers]
-
-      while (trioMembers.length < 3 && remainingPeople.length > 0) {
-        const nextMember = remainingPeople.shift()
-        if (nextMember) {
-          trioMembers.push(nextMember)
-        }
-      }
-
-      if (trioMembers.length !== 3) {
-        alert("3인조 팀을 구성하는 중 오류가 발생했습니다. 다시 시도해주세요.")
-        return
-      }
-
+    while (remainingPeople.length >= teamSize) {
+      const members = remainingPeople.splice(0, teamSize)
       newTeams.push({
         id: teamId++,
-        members: trioMembers,
-        topic: shuffledTopics[topicIndex++ % shuffledTopics.length],
-        principle: shuffledPrinciples[principleIndex++ % shuffledPrinciples.length],
-      })
-    }
-
-    if (forcePresetTrioInEvenCase) {
-      const secondTrioMembers = remainingPeople.splice(0, 3)
-
-      if (secondTrioMembers.length !== 3) {
-        alert("짝수 인원 3인조 구성을 완료하지 못했습니다. 다시 시도해주세요.")
-        return
-      }
-
-      newTeams.push({
-        id: teamId++,
-        members: secondTrioMembers,
-        topic: shuffledTopics[topicIndex++ % shuffledTopics.length],
-        principle: shuffledPrinciples[principleIndex++ % shuffledPrinciples.length],
-      })
-    }
-
-    while (remainingPeople.length >= 2) {
-      const pairMembers = remainingPeople.splice(0, 2)
-      newTeams.push({
-        id: teamId++,
-        members: pairMembers,
+        members,
         topic: shuffledTopics[topicIndex++ % shuffledTopics.length],
         principle: shuffledPrinciples[principleIndex++ % shuffledPrinciples.length],
       })
@@ -175,8 +131,8 @@ export default function Home() {
           setTopics={setTopics}
           principles={principles}
           setPrinciples={setPrinciples}
-          presetTrioMembers={presetTrioMembers}
-          setPresetTrioMembers={setPresetTrioMembers}
+          teamSize={teamSize}
+          setTeamSize={setTeamSize}
           onGenerate={generateMatching}
         />
       ) : (

@@ -6,19 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import {
   Users,
   MessageSquare,
   Plus,
+  Minus,
   X,
   Shuffle,
-  ChevronDown,
-  Lock,
-  UserPlus,
   Upload,
   FileSpreadsheet,
   Lightbulb,
@@ -32,8 +25,8 @@ interface AdminPanelProps {
   setTopics: (topics: string[]) => void
   principles: string[]
   setPrinciples: (principles: string[]) => void
-  presetTrioMembers: string[]
-  setPresetTrioMembers: (members: string[]) => void
+  teamSize: 2 | 3 | 4
+  setTeamSize: (size: 2 | 3 | 4) => void
   onGenerate: () => void
 }
 
@@ -44,14 +37,13 @@ export default function AdminPanel({
   setTopics,
   principles,
   setPrinciples,
-  presetTrioMembers,
-  setPresetTrioMembers,
+  teamSize,
+  setTeamSize,
   onGenerate,
 }: AdminPanelProps) {
   const [newPerson, setNewPerson] = useState("")
   const [newTopic, setNewTopic] = useState("")
   const [newPrinciple, setNewPrinciple] = useState("")
-  const [isTrioOpen, setIsTrioOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,7 +118,6 @@ export default function AdminPanel({
 
   const removePerson = (person: string) => {
     setPeople(people.filter((p) => p !== person))
-    setPresetTrioMembers(presetTrioMembers.filter((m) => m !== person))
   }
 
   const addTopic = () => {
@@ -151,11 +142,15 @@ export default function AdminPanel({
     setPrinciples(principles.filter((p) => p !== principle))
   }
 
-  const toggleTrioMember = (person: string) => {
-    if (presetTrioMembers.includes(person)) {
-      setPresetTrioMembers(presetTrioMembers.filter((m) => m !== person))
-    } else if (presetTrioMembers.length < 3) {
-      setPresetTrioMembers([...presetTrioMembers, person])
+  const decreaseTeamSize = () => {
+    if (teamSize > 2) {
+      setTeamSize((teamSize - 1) as 2 | 3 | 4)
+    }
+  }
+
+  const increaseTeamSize = () => {
+    if (teamSize < 4) {
+      setTeamSize((teamSize + 1) as 2 | 3 | 4)
     }
   }
 
@@ -167,6 +162,9 @@ export default function AdminPanel({
       action()
     }
   }
+
+  const hasInvalidTeamSplit =
+    people.length >= teamSize && people.length % teamSize !== 0
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -369,74 +367,44 @@ export default function AdminPanel({
         </CardContent>
       </Card>
 
-      {/* Hidden Trio Settings */}
-      <Collapsible
-        open={isTrioOpen}
-        onOpenChange={setIsTrioOpen}
-        className="mt-6"
-      >
-        <Card className="border-border bg-card">
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-secondary/30 transition-colors rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Lock className="h-5 w-5 text-muted-foreground" />
-                <span className="text-muted-foreground">
-                  선생님 기능
-                </span>
-                <ChevronDown
-                  className={`h-4 w-4 ml-auto text-muted-foreground transition-transform duration-200 ${
-                    isTrioOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="pt-0 space-y-4">
-              <p className="text-sm text-muted-foreground">
-                홀수 인원 시 3인조 팀에 포함될 멤버를 미리 지정할 수 있습니다.
-                짝수 인원에서 선택하면 3인조 2팀으로 구성됩니다. (최대 3명)
-              </p>
-              <div className="flex flex-wrap gap-2 min-h-[60px] p-3 rounded-lg bg-secondary/50 border border-border">
-                {people.length === 0 ? (
-                  <p className="text-muted-foreground text-sm w-full text-center py-2">
-                    먼저 참가자를 추가해주세요
-                  </p>
-                ) : (
-                  people.map((person) => {
-                    const isSelected = presetTrioMembers.includes(person)
-                    return (
-                      <Badge
-                        key={person}
-                        variant={isSelected ? "default" : "outline"}
-                        className={`h-8 px-3 cursor-pointer transition-all ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-card border-border hover:bg-secondary"
-                        } ${
-                          !isSelected && presetTrioMembers.length >= 3
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        }`}
-                        onClick={() => toggleTrioMember(person)}
-                      >
-                        {isSelected && <UserPlus className="h-3 w-3 mr-1" />}
-                        {person}
-                      </Badge>
-                    )
-                  })
-                )}
-              </div>
-              {presetTrioMembers.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-primary">
-                  <UserPlus className="h-4 w-4" />
-                  선택된 멤버: {presetTrioMembers.join(", ")}
-                </div>
-              )}
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+      <Card className="border-border bg-card mt-6">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            팀 인원 선택
+            <Badge variant="secondary" className="ml-auto">
+              {teamSize}명
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={decreaseTeamSize}
+              disabled={teamSize <= 2}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <div className="min-w-24 text-center text-2xl font-semibold text-foreground">
+              {teamSize}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={increaseTeamSize}
+              disabled={teamSize >= 4}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-center text-sm text-muted-foreground">
+            버튼으로 팀 인원 수(2~4명)를 선택합니다.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Generate Button */}
       <div className="mt-8 flex justify-center">
@@ -444,16 +412,26 @@ export default function AdminPanel({
           onClick={onGenerate}
           size="lg"
           className="px-8 py-6 text-lg font-semibold"
-          disabled={people.length < 2 || topics.length === 0 || principles.length === 0}
+          disabled={
+            people.length < teamSize ||
+            hasInvalidTeamSplit ||
+            topics.length === 0 ||
+            principles.length === 0
+          }
         >
           <Shuffle className="h-5 w-5 mr-2" />
           매칭 시작
         </Button>
       </div>
 
-      {(people.length < 2 || topics.length === 0 || principles.length === 0) && (
+      {(people.length < teamSize ||
+        hasInvalidTeamSplit ||
+        topics.length === 0 ||
+        principles.length === 0) && (
         <p className="text-center text-muted-foreground text-sm mt-4">
-          {people.length < 2 && "최소 2명 이상의 참가자가 필요합니다. "}
+          {people.length < teamSize && `최소 ${teamSize}명 이상의 참가자가 필요합니다. `}
+          {hasInvalidTeamSplit &&
+            `현재 ${people.length}명은 ${teamSize}인 팀으로 나누어 떨어지지 않습니다. `}
           {topics.length === 0 && "최소 1개 이상의 주제가 필요합니다. "}
           {principles.length === 0 && "최소 1개 이상의 원리가 필요합니다."}
         </p>
