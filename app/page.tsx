@@ -62,8 +62,8 @@ export default function Home() {
   }
 
   const generateMatching = () => {
-    if (people.length < teamSize) {
-      alert(`최소 ${teamSize}명 이상의 참가자가 필요합니다.`)
+    if (people.length < 2) {
+      alert("최소 2명 이상의 참가자가 필요합니다.")
       return
     }
     if (topics.length === 0) {
@@ -84,18 +84,6 @@ export default function Home() {
     let topicIndex = 0
     let principleIndex = 0
 
-    if ((teamSize === 2 || teamSize === 4) && people.length % 2 === 1) {
-      alert(`${teamSize}인 팀은 짝수 인원에서만 만들 수 있습니다.`)
-      return
-    }
-
-    if (people.length % teamSize !== 0) {
-      alert(
-        `현재 인원(${people.length}명)으로는 ${teamSize}인 팀을 동일하게 구성할 수 없습니다.`
-      )
-      return
-    }
-
     while (remainingPeople.length >= teamSize) {
       const members = remainingPeople.splice(0, teamSize)
       newTeams.push({
@@ -107,8 +95,12 @@ export default function Home() {
     }
 
     if (remainingPeople.length > 0) {
-      alert("팀 구성 중 남은 인원이 발생했습니다. 다시 시도해주세요.")
-      return
+      newTeams.push({
+        id: teamId++,
+        members: remainingPeople,
+        topic: shuffledTopics[topicIndex++ % shuffledTopics.length],
+        principle: shuffledPrinciples[principleIndex++ % shuffledPrinciples.length],
+      })
     }
 
     setTeams(shuffleArray(newTeams))

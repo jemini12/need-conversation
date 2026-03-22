@@ -163,9 +163,6 @@ export default function AdminPanel({
     }
   }
 
-  const hasInvalidTeamSplit =
-    people.length >= teamSize && people.length % teamSize !== 0
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="text-center mb-10">
@@ -401,7 +398,7 @@ export default function AdminPanel({
             </Button>
           </div>
           <p className="text-center text-sm text-muted-foreground">
-            버튼으로 팀 인원 수(2~4명)를 선택합니다.
+            버튼으로 팀 인원 수(2~4명)를 선택합니다. 남는 인원은 더 적은 인원 팀으로 구성됩니다.
           </p>
         </CardContent>
       </Card>
@@ -412,26 +409,16 @@ export default function AdminPanel({
           onClick={onGenerate}
           size="lg"
           className="px-8 py-6 text-lg font-semibold"
-          disabled={
-            people.length < teamSize ||
-            hasInvalidTeamSplit ||
-            topics.length === 0 ||
-            principles.length === 0
-          }
+          disabled={people.length < 2 || topics.length === 0 || principles.length === 0}
         >
           <Shuffle className="h-5 w-5 mr-2" />
           매칭 시작
         </Button>
       </div>
 
-      {(people.length < teamSize ||
-        hasInvalidTeamSplit ||
-        topics.length === 0 ||
-        principles.length === 0) && (
+      {(people.length < 2 || topics.length === 0 || principles.length === 0) && (
         <p className="text-center text-muted-foreground text-sm mt-4">
-          {people.length < teamSize && `최소 ${teamSize}명 이상의 참가자가 필요합니다. `}
-          {hasInvalidTeamSplit &&
-            `현재 ${people.length}명은 ${teamSize}인 팀으로 나누어 떨어지지 않습니다. `}
+          {people.length < 2 && "최소 2명 이상의 참가자가 필요합니다. "}
           {topics.length === 0 && "최소 1개 이상의 주제가 필요합니다. "}
           {principles.length === 0 && "최소 1개 이상의 원리가 필요합니다."}
         </p>
